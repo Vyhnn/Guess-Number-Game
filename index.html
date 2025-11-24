@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>INF313 Project - Guess the Number</title>
+        <meta charset="UTF-8">
+        <meta name="description" content="INF313 Project - Guess the Number">
+        <meta name="keywords" content="HTML, CSS, JavaScript">
+        <meta name="author" content="Vincent Li">
+        <meta charset="utf-8">
+
+        <link rel="stylesheet" type="text/css" href="main.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Tektur:wght@400..900&display=swap" rel="stylesheet">
+  </head>
+    </head>
+
+    <body>
+        <div class="header">
+            <h1>Guess the Number</h1>
+        </div>
+        <div id="startPopUp" class="popUp hidden">
+            <div id="avatar">
+                <img src="img/player.png"/>
+            </div>
+            <label for="name">Name (4 to 20 characters):</label>
+            <input type="text"
+                id="name"
+                name="name"
+                placeholder="Player Name"
+                required
+                minlength="4"
+                maxlength="20"
+                size="20" />
+            <div class="alertMsg"></div>
+            <div id="modeOptions">
+                <div id="easyMode" class="targeted" onclick="selectGameMode(this)">Easy Mode</div>
+                <div id="hardMode"class="" onclick="selectGameMode(this)">Hard Mode</div>
+            </div>
+            <button type="button" onclick="submitGame()">Start Game</button>
+        </div>
+        <div id="numPopUp" class="popUp hidden">
+            <div id="avatar">
+                <img src="img/player.png"/>
+            </div>
+            <label for="name">Enter a three digit number:</label>
+            <input type="text"
+                id="guessNum"
+                name="guessNum"
+                placeholder="e.g. 842"
+                required
+                minlength="3"
+                maxlength="3"
+                size="3" />
+            <div class="alertMsg"></div>
+            <button type="button" onclick="submitNum()">Submit</button>
+        </div>
+        <div id="msgPopUp" class="popUp hidden">
+            <div class="msg"></div>
+            <button type="button" onclick="toggleMsgPopUp()">OK</button>
+        </div>
+        <div id="gameEndPopUp" class="popUp hidden">
+            <div class="endMsg"></div>
+            <button type="button" onclick="restartGame()">Restart</button>
+        </div>
+        <div class="mainBody">
+            <div id="displayContainer">
+                <div id="nameHeaders">
+                    <div id="playerNameHeader" class="nameHeader"></div>
+                    <div id="pcNameHeader" class="nameHeader"></div>
+                </div>
+                <div class="displayBoxes">
+                    <div id="playerDisplayBox" class="displayBox">
+                        <div class="displayHeader">
+                            
+                        </div>
+                        <div class="guessNumContainer">
+
+                        </div>
+                    </div>
+                    <div id="pcDisplayBox" class="displayBox">
+                        <div class="displayHeader">
+                            
+                        </div>
+                        <div class="guessNumContainer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="inputContainer">
+                <div class="userInfo">
+                    <img src="/img/player.png"/>
+                    <p id="playerName"></p>
+                    <p id="attempts"></p>
+                </div>
+                <div id="inputKeys">
+                    
+                </div>
+                <div id="functionKeys">
+
+                </div>
+            </div>
+        </div>
+        
+        <script src="main.js"></script>
+    </body>
+</html>
