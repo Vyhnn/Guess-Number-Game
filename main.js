@@ -139,7 +139,11 @@ function generateTurn3Guess() {
             }
         }
     }
-    console.log(guessNum)
+    if(!checkNum(guessNum)) {
+        while(!checkValidFeedbacks(guessNum)) {
+            guessNum = genRandNum();
+        }
+    }
     return guessNum;
 }
 
@@ -226,7 +230,11 @@ function generateTurn4PlusGuess() {
         }
     }
 
-    console.log("Turn4+ guess:", guessNum);
+    if(!checkNum(guessNum)) {
+        while(!checkValidFeedbacks(guessNum)) {
+            guessNum = genRandNum();
+        }
+    }
     return guessNum;
 }
 
