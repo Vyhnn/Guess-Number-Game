@@ -15,7 +15,8 @@ let pc = {
 let gameMode = 1;
 let turn;
 let guessList = []; //[guessedNum, feedback]
-let possibleNum = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+let possibleDigits = new Set([1,2,3,4,5,6,7,8,9]);
 
 ////////////////////////////////////////////////////////////////////////
 //   Logic Functions
@@ -77,81 +78,216 @@ function checkValidFeedbacks(guessNum) {
 }
 
 function generatePcGuessNum() {
-    let guessNum = ["", "", ""];
-    
     if(gameMode==1) {
-        guessNum = genRandNum();
-        while(!checkValidFeedbacks(guessNum)) {
-            guessNum = genRandNum();
-        }
-    } else if(gameMode==2) {
-        let guessingTurn = guessList.length+1;
-        if(guessingTurn==1) {
-            guessNum = [1, 2, 3];
-        } else if(guessingTurn==2) {
-            guessNum = [4, 5, 6];
-        } else if(guessingTurn==3){
-            for(let i=0;i<guessList[0][1].length;i++) {
-                if(guessList[0][1][i]=="+") {
-                    guessNum[i] = guessList[0][0][i];
-                } else if(guessList[0][1][i]=="-") {
-                    for(let j=0;j<guessNum.length;j++) {
-                        if(guessNum[j]==""&&j!=i) {
-                            guessNum[j]=guessList[0][0][i];
-                            break;
-                        }
-                    }                
-                }
-            }
-            for(let i=0;i<guessList[1][1].length;i++) {
-                if(guessList[1][1][i]=="+") {
-                    for(let j=0;j<guessNum.length;j++) {
-                        if(guessNum[j]==""&&j==i) {
-                            guessNum[j]=guessList[1][0][i];
-                            break;
-                        }
-                    }  
-                    guessNum[i] = guessList[1][0][i];
-                } else if(guessList[1][1][i]=="-") {
-                    for(let j=0;j<guessNum.length;j++) {
-                        if(guessNum[j]==""&&j!=i) {
-                            guessNum[j]=guessList[1][0][i];
-                            break;
-                        }
-                    }                
-                }
-            }
-            for(let i=0;i<guessNum.length;i++) {
-                if(guessNum[i]=="") {
-                    guessNum[i] = [7, 8, 9][i];
-                }
-            }
-            guessNum = guessNum;
-        } else {
-            let lastGuess = guessList[-1][0];
-            let lastFeedBack = guessList[-1][1];
+        return generateSimpleGuess()
+    }
+    if(gameMode==2) {
+        const turn = guessList.length + 1;
 
-            let set1 = guessList[0][1].length
-            let set2 = guessList[1][1].length
-            let set3 = 3 - set1 - set2
-
-            for(let i=0;i<=lastFeedBack.length;i++) {
-                if(feedback=="+") {
-                    guessNum[i] = lastGuess[i];
-                } else if(feedback=="-") {
-                    for(let j=0;j<guessNum.length;j++) {
-                        if(guessNum[j]==""&&j!=i) {
-                            guessNum[j]=feedback[i];
-                            break;
-                        }
-                    }    
-                }
-            }
-
-        }
+        if (turn === 1) return [1,2,3];
+        if (turn === 2) return [4,5,6];
+        if (turn === 3) return generateTurn3Guess();
+        return generateTurn4PlusGuess();
     }
     
+}
+
+function generateSimpleGuess() {
+    let guessNum = genRandNum();
+    while(!checkValidFeedbacks(guessNum)) {
+        guessNum = genRandNum();
+    }
+    console.log(guessNum)
     return guessNum;
+}
+
+// Helper: place digit in first valid empty position without violating previous feedbacks
+function placeDigitInFirstEmpty(digit, guessNum) {
+    for (let i = 0; i < 3; i++) {
+        if (guessNum[i] === "" && isPlacementValid(i, digit, guessNum)) {
+            guessNum[i] = digit;
+            return true;
+        }
+    }
+    return false; // could not place
+}
+
+function generateTurn3Guess() {
+    const guessNum = ["", "", ""];
+
+    for (let [prevGuess, feedback] of guessList.slice(0, 2)) {
+        for (let i = 0; i < 3; i++) {
+            const digit = prevGuess[i];
+            if (feedback[i] === "+") {
+                if (isPlacementValid(i, digit, guessNum)) {
+                    guessNum[i] = digit;
+                }
+            } else if (feedback[i] === "-") {
+                placeDigitInFirstEmpty(digit, guessNum);
+            }
+        }
+    }
+
+    // Fill remaining empty positions with 7,8,9
+    for (let i = 0; i < 3; i++) {
+        if (guessNum[i] === "") {
+            for (let d of [7, 8, 9]) {
+                if (!guessNum.includes(d) && isPlacementValid(i, d, guessNum)) {
+                    guessNum[i] = d;
+                    break;
+                }
+            }
+        }
+    }
+    console.log(guessNum)
+    return guessNum;
+}
+
+function generateTurn4PlusGuess() {
+    const guessNum = ["", "", ""];
+
+    const [lastGuess, lastFeedback] = guessList[guessList.length - 1];
+
+    // --- STEP 1: HANDLE LAST GUESS FIRST ---
+    const usedDigits = new Set();
+
+    for (let i = 0; i < lastFeedback.length; i++) {
+        const symbol = lastFeedback[i];
+        if (symbol !== "+" && symbol !== "-") continue;
+
+        // Find first unused digit from last guess
+        let digit = null;
+        for (let d of lastGuess) {
+            if (!usedDigits.has(d) && possibleDigits.has(d)) {
+                digit = d;
+                break;
+            }
+        }
+        if (digit === null) continue;
+
+        usedDigits.add(digit);
+
+        if (symbol === "+") {
+            // Place in the same position if valid
+            for (let pos = 0; pos < 3; pos++) {
+                if (lastGuess[pos] === digit &&
+                    guessNum[pos] === "" &&
+                    isPlacementValid(pos, digit, guessNum)) 
+                {
+                    guessNum[pos] = digit;
+                    break;
+                }
+            }
+        }
+
+        if (symbol === "-") {
+            // Place in first empty position that is NOT same position as before
+            for (let pos = 0; pos < 3; pos++) {
+                if (guessNum[pos] === "" &&
+                    lastGuess[pos] !== digit &&
+                    isPlacementValid(pos, digit, guessNum)) 
+                {
+                    guessNum[pos] = digit;
+                    break;
+                }
+            }
+        }
+    }
+
+    // --- STEP 2: HANDLE FIRST TWO GUESSES (your previous rule) ---
+    const firstTwo = guessList.slice(0, 2);
+
+    for (let [prevGuess, feedback] of firstTwo) {
+        const neededCount = feedback.length;
+        let inserted = 0;
+
+        for (let digit of prevGuess) {
+            if (inserted === neededCount) break;
+            if (!possibleDigits.has(digit)) continue;
+            if (guessNum.includes(digit)) continue;
+
+            if (placeDigitIfPossible(digit, guessNum)) {
+                inserted++;
+            }
+        }
+    }
+
+    // --- STEP 3: FILL REMAINING WITH 7, 8, 9 ---
+    for (let pos = 0; pos < 3; pos++) {
+        if (guessNum[pos] === "") {
+            for (let d of [7, 8, 9]) {
+                if (!guessNum.includes(d) && possibleDigits.has(d)) {
+                    if (isPlacementValid(pos, d, guessNum)) {
+                        guessNum[pos] = d;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    console.log("Turn4+ guess:", guessNum);
+    return guessNum;
+}
+
+// Update possible digits after feedback
+function updatePossibleDigits(guess, feedback) {
+    const hasMatch = feedback.includes("+") || feedback.includes("-");
+    if (!hasMatch) {
+        // No matches → remove all digits in this guess
+        for (let d of guess) possibleDigits.delete(d);
+    }
+}
+
+// Check if placing a digit is valid
+function isPlacementValid(pos, digit, guessNum) {
+    if (!possibleDigits.has(digit)) return false;
+    if (guessNum.includes(digit)) return false;
+
+    const test = [...guessNum];
+    test[pos] = digit;
+
+    for (let [prevGuess, feedback] of guessList) {
+        if (!matchesFeedback(test, prevGuess, feedback)) return false;
+    }
+
+    return true;
+}
+
+// Check if a candidate guess matches previous feedback
+function matchesFeedback(candidate, guess, feedback) {
+    const plusNeeded = feedback.filter(f => f === "+").length;
+    const minusNeeded = feedback.filter(f => f === "-").length;
+
+    // Count exact matches
+    let plus = 0;
+    for (let i = 0; i < 3; i++) {
+        if (candidate[i] === guess[i]) plus++;
+    }
+    if (plus > plusNeeded) return false;
+
+    // Count total shared digits
+    let shared = candidate.filter(d => guess.includes(d)).length;
+    let minus = shared - plus;
+    if (minus > minusNeeded) return false;
+
+    return true;
+}
+
+function placeDigitIfPossible(digit, guessNum) {
+    for (let i = 0; i < 3; i++) {
+        if (guessNum[i] === "" && isPlacementValid(i, digit, guessNum)) {
+            guessNum[i] = digit;
+            return true;
+        }
+    }
+    return false;
+}
+
+// Call after receiving feedback
+function processFeedback(guess, feedback) {
+    guessList.push([guess, feedback]);
+    updatePossibleDigits(guess, feedback);
 }
 
 // Checking if two arrays are equal
@@ -613,7 +749,7 @@ function enterNum() {
                     }
                     
                 }
-                guessList.push([guessedNum, feedback]);
+                processFeedback(guessedNum, feedback);
                 if(arrayEqual(feedback, ["+","+","+"])) {
                     if(turn%2==0) {
                         player.guessed = true;
