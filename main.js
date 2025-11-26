@@ -1,3 +1,4 @@
+//Player Info
 let player = {
     name: "player",
     attempt: 0,
@@ -5,6 +6,7 @@ let player = {
     guessed: false
 }
 
+//PC Info
 let pc = {
     name: "Computer",
     attempt: 0,
@@ -12,15 +14,17 @@ let pc = {
     guessed: false
 }
 
-let gameMode = 1;
-let turn;
+let gameMode = 1; //Easy Mode: 1, Hard Mode: 2
+let turn; //Number of turn
 let guessList = []; //[guessedNum, feedback]
 
-let possibleDigits = new Set([1,2,3,4,5,6,7,8,9]);
+let possibleDigits = new Set([1,2,3,4,5,6,7,8,9]); //Remaining possible digits
 
 ////////////////////////////////////////////////////////////////////////
 //   Logic Functions
 ////////////////////////////////////////////////////////////////////////
+
+//Generate secret number for PC
 function getPcNum() {
     return genRandNum();
 }
@@ -67,6 +71,7 @@ function getFirstTurn() {
     return Math.random() < 0.5 ? 1 : 0;
 }
 
+//Check if the guessNum is valid from previous feedback
 function checkValidFeedbacks(guessNum) {
     let valid = true;
     for(let guess of guessList) {
@@ -77,6 +82,7 @@ function checkValidFeedbacks(guessNum) {
     return valid;
 }
 
+//Geerate guess number for PC
 function generatePcGuessNum() {
     if(gameMode==1) {
         return generateSimpleGuess()
@@ -92,6 +98,7 @@ function generatePcGuessNum() {
     
 }
 
+// Generate guess number for easy mode
 function generateSimpleGuess() {
     let guessNum = genRandNum();
     while(!checkValidFeedbacks(guessNum)) {
@@ -101,7 +108,7 @@ function generateSimpleGuess() {
     return guessNum;
 }
 
-// Helper: place digit in first valid empty position without violating previous feedbacks
+//Place digit in first valid empty position without violating previous feedbacks
 function placeDigitInFirstEmpty(digit, guessNum) {
     for (let i = 0; i < 3; i++) {
         if (guessNum[i] === "" && isPlacementValid(i, digit, guessNum)) {
@@ -112,6 +119,7 @@ function placeDigitInFirstEmpty(digit, guessNum) {
     return false; // could not place
 }
 
+//Generate guess number for 3rd turn
 function generateTurn3Guess() {
     const guessNum = ["", "", ""];
 
@@ -147,6 +155,7 @@ function generateTurn3Guess() {
     return guessNum;
 }
 
+//Generate guess number for 4+ turn
 function generateTurn4PlusGuess() {
     const guessNum = ["", "", ""];
 
@@ -185,7 +194,7 @@ function generateTurn4PlusGuess() {
         }
 
         if (symbol === "-") {
-            // Place in first empty position that is NOT same position as before
+            // Place in first empty position that is not same position as before
             for (let pos = 0; pos < 3; pos++) {
                 if (guessNum[pos] === "" &&
                     lastGuess[pos] !== digit &&
@@ -198,7 +207,7 @@ function generateTurn4PlusGuess() {
         }
     }
 
-    // --- STEP 2: HANDLE FIRST TWO GUESSES (your previous rule) ---
+    // --- STEP 2: HANDLE FIRST TWO GUESSES ---
     const firstTwo = guessList.slice(0, 2);
 
     for (let [prevGuess, feedback] of firstTwo) {
@@ -282,6 +291,7 @@ function matchesFeedback(candidate, guess, feedback) {
     return true;
 }
 
+//Place and check if the placement is valid
 function placeDigitIfPossible(digit, guessNum) {
     for (let i = 0; i < 3; i++) {
         if (guessNum[i] === "" && isPlacementValid(i, digit, guessNum)) {
@@ -326,6 +336,7 @@ function getFeedback(targetNum, guessedNum) {
     return feedback;
 }
 
+//Check if feedback is valid
 function checkFeedback(feedback, guessedReselt) {
     return arrayEqual(feedback.sort(), guessedReselt.sort())
 }
@@ -334,6 +345,7 @@ function checkFeedback(feedback, guessedReselt) {
 //   UI Functions
 ////////////////////////////////////////////////////////////////////////
 
+//Toggle popup, (hidden)
 function togglePopUp(popUp) {
     popUp.classList.toggle("hidden");
 }
@@ -366,6 +378,7 @@ function generateKeyNum() {
     }
 }
 
+//Generate input keys for feedback, "+" "-"
 function generateFeedbackKeys() {
     let feedbackKeys = document.getElementById("inputKeys");
     feedbackKeys.replaceChildren();
@@ -639,6 +652,7 @@ function submitNum() {
     }
 }
 
+//Start of the round
 function startRound() {
     turnPopUp();
     let displayBox;
@@ -654,6 +668,7 @@ function startRound() {
     createGuessRow(guessNumContainer);
 }
 
+//When the enter key is pressed, check input
 function enterNum() {
     let currentRow = document.getElementsByClassName("current")[0];
 
@@ -816,6 +831,7 @@ function enterNum() {
     }
 }
 
+//Check winner
 function checkWinner() {
     if((player.guessed&&player.attempt<=pc.attempt)||(pc.guessed&&player.attempt>=pc.attempt)) {
         return true;
@@ -847,6 +863,7 @@ function endGame() {
     togglePopUp(endGamePopUp)
 }
 
+//Reload game
 function restartGame() {
     location.reload();
 }
